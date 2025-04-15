@@ -7,8 +7,9 @@ class TodoRepository {
   final FirebaseFirestore _firestore;
 
   final String _email;
+  final bool isShared;
 
-  TodoRepository({FirebaseFirestore? fireStore})
+  TodoRepository({FirebaseFirestore? fireStore, this.isShared = false})
       : _firestore = fireStore ?? FirebaseFirestore.instance,
         _email = Global.storageService.getUserProfile()!.email;
 
@@ -17,20 +18,33 @@ class TodoRepository {
         toFirestore: (todo, _) => todo.toJson(),
       );
 
-  Query<Todo> get _myTodosQuery => _todoCollection.where('owner', isEqualTo: _email);
+  Query<Todo> get _myTodosQuery => isShared ? _todoCollection.where('sharedWith', arrayContains: _email) : _todoCollection.where('owner', isEqualTo: _email);
 
-  Query<Todo> get _sharedTodosQuery => _todoCollection.where('sharedWith', arrayContains: _email);
+  Stream<List<Todo>> getTodosPageStream({
+    int limit = 10,
+    DocumentSnapshot<Todo>? startAfter,
+  }) {
+    Query<Todo> query = _myTodosQuery.orderBy('createdAt', descending: true).limit(limit);
 
-  Stream<List<Todo>> getTodos() {
-    return _myTodosQuery.snapshots().map((snapshot) => snapshot.docs.map((doc) {
-          return doc.data();
-        }).toList());
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    return query.snapshots().map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }
 
-  Stream<List<Todo>> getSharedTodos() {
-    return _sharedTodosQuery.snapshots().map((snapshot) => snapshot.docs.map((doc) {
-          return doc.data();
-        }).toList());
+  Future<DocumentSnapshot<Todo>?> getLastDocumentFromPage({
+    int limit = 10,
+    DocumentSnapshot<Todo>? startAfter,
+  }) async {
+    Query<Todo> query = _myTodosQuery.orderBy('createdAt', descending: true).limit(limit);
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.get();
+    return snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
   }
 
   Future<void> addTodo(Todo todo) => _todoCollection.add(todo);

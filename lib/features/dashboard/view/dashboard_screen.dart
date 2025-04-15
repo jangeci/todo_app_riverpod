@@ -19,10 +19,6 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
-    final todoController = ref.watch(todoControllerProvider);
-    final sharedController = ref.watch(sharedTodosControllerProvider);
-    //final actions = ref.read(todoActionsControllerProvider.notifier);
-
     return SafeArea(
         child: Scaffold(
       appBar: AppBarWidget(
@@ -68,12 +64,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     child: TabBarView(children: [
                       TodoListView(
                         ref: ref,
-                        todos: todoController.value ?? [],
                       ),
                       TodoListView(
                         ref: ref,
-                        todos: sharedController.value ?? [],
-                        showOwner: true,
+                        isSharedList: true,
                       ),
                     ]),
                   ),
@@ -92,6 +86,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   _displayTextInputDialog(WidgetRef ref) async {
     final actionsController = ref.read(todoActionsControllerProvider.notifier);
+    final todosNotifier = ref.read(todoControllerProvider.notifier);
 
     return showDialog(
       context: context,
@@ -103,6 +98,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             PrimaryButton(
                 onTap: () {
                   actionsController.addTodo();
+                  todosNotifier.refetch();
                   Navigator.pop(context);
                 },
                 text: 'Create')

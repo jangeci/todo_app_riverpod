@@ -6,7 +6,7 @@ part of 'todo_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$todoControllerHash() => r'ed90985c522277a21da15671144b94d33702f5be';
+String _$todoControllerHash() => r'2a29164f4802358d44230274f0f336e39841d230';
 
 /// See also [TodoController].
 @ProviderFor(TodoController)
@@ -23,7 +23,7 @@ final todoControllerProvider =
 
 typedef _$TodoController = AutoDisposeStreamNotifier<List<Todo>>;
 String _$sharedTodosControllerHash() =>
-    r'576a4ba71d6830a26261a7d67fe633a221df9118';
+    r'f3ff09d8bb373d4eec760f7ce984c8788b33f99e';
 
 /// See also [SharedTodosController].
 @ProviderFor(SharedTodosController)
@@ -40,7 +40,7 @@ final sharedTodosControllerProvider = AutoDisposeStreamNotifierProvider<
 
 typedef _$SharedTodosController = AutoDisposeStreamNotifier<List<Todo>>;
 String _$todoActionsControllerHash() =>
-    r'fbd46c4a7dbccaa2c62ac460fa85ce0f4cadf04e';
+    r'f7f49a6bdfad8c354f227a98561e5693caa2055e';
 
 /// See also [TodoActionsController].
 @ProviderFor(TodoActionsController)
