@@ -35,12 +35,23 @@ class _TodoListViewState extends State<TodoListView> {
   }
 
   void _maybeLoadMore() async {
-    final todoController = widget.ref.read(todoControllerProvider.notifier);
+    //I tried to write this better but ended up with this :s
+    if (widget.isSharedList) {
+      final todoController = widget.ref.read(sharedTodosControllerProvider.notifier);
 
-    if (!_isLoadingMore && todoController.getHasMore) {
-      setState(() => _isLoadingMore = true);
-      await todoController.loadMore();
-      setState(() => _isLoadingMore = false);
+      if (!_isLoadingMore && todoController.hasMore) {
+        setState(() => _isLoadingMore = true);
+        await todoController.loadMore();
+        setState(() => _isLoadingMore = false);
+      }
+    } else {
+      final todoController = widget.ref.read(todosControllerProvider.notifier);
+
+      if (!_isLoadingMore && todoController.hasMore) {
+        setState(() => _isLoadingMore = true);
+        await todoController.loadMore();
+        setState(() => _isLoadingMore = false);
+      }
     }
   }
 
@@ -52,18 +63,11 @@ class _TodoListViewState extends State<TodoListView> {
 
   @override
   Widget build(BuildContext context) {
-    final todosStream = widget.isSharedList
-        ? widget.ref.watch(sharedTodosControllerProvider)
-        : widget.ref.watch(todoControllerProvider);
-
-    final todoController = widget.isSharedList
-        ? widget.ref.watch(sharedTodosControllerProvider.notifier)
-        : widget.ref.watch(todoControllerProvider.notifier);
-
+    final todosStream = widget.isSharedList ? widget.ref.watch(sharedTodosControllerProvider) : widget.ref.watch(todosControllerProvider);
+    final hasMore =
+        widget.isSharedList ? widget.ref.watch(sharedTodosControllerProvider.notifier).hasMore : widget.ref.watch(todosControllerProvider.notifier).hasMore;
     final actions = widget.ref.read(todoActionsControllerProvider.notifier);
 
-    final hasMore = true;
-    //final hasMore = todoController.getHasMore;
     return todosStream.when(
       data: (todos) {
         if (todos.isEmpty) {
@@ -72,8 +76,11 @@ class _TodoListViewState extends State<TodoListView> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            //TODO
-            //widget.ref.read(currentTodosControllerProvider.notifier).refetch();
+            if (widget.isSharedList) {
+              widget.ref.read(sharedTodosControllerProvider.notifier).refetch();
+            } else {
+              widget.ref.read(todosControllerProvider.notifier).refetch();
+            }
           },
           child: ListView.builder(
             controller: _scrollController,

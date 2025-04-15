@@ -1,161 +1,53 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:todo_app/common/widgets/popup_messages.dart';
+import 'package:todo_app/features/dashboard/controller/todos_pagination_manager.dart';
 import 'package:todo_app/features/dashboard/repo/todo_repo.dart';
 import 'package:todo_app/global.dart';
 import 'package:todo_app/models/todo.dart';
 
 part 'todo_controller.g.dart';
 
-@riverpod
-class TodoController extends _$TodoController {
+@Riverpod(keepAlive: true)
+class TodosController extends _$TodosController {
   final _repo = TodoRepository();
-  final List<StreamSubscription<List<Todo>>> _subscriptions = [];
-  final List<Todo> _allTodos = [];
-  final Set<String> _existingIds = {};
-  DocumentSnapshot<Todo>? _lastDoc;
-  bool _hasMore = true;
-
-  bool get getHasMore => _hasMore;
-
-  final _mergedStream = StreamController<List<Todo>>.broadcast();
+  final _pagination = TodosPaginationManager();
 
   @override
   Stream<List<Todo>> build() {
-    ref.onDispose(() {
-      for (final sub in _subscriptions) {
-        sub.cancel();
-      }
-      _mergedStream.close();
-    });
-
-    _loadNextPage();
-    return _mergedStream.stream;
+    ref.onDispose(_pagination.dispose);
+    _pagination.loadNextPage(_repo);
+    return _pagination.stream;
   }
 
-  Future<void> _loadNextPage() async {
-    if (!_hasMore) return;
-    final pageStream = _repo.getTodosPageStream(startAfter: _lastDoc);
+  @override
+  bool get hasMore => _pagination.hasMore;
 
-    final sub = pageStream.listen((todos) {
-      for (var todo in todos) {
-        if (!_existingIds.contains(todo.id)) {
-          _existingIds.add(todo.id);
-          _allTodos.add(todo);
-        } else {
-          final index = _allTodos.indexWhere((item) => item.id == todo.id);
-          if (index != -1) {
-            _allTodos[index] = todo;
-          }
-        }
-      }
-      _mergedStream.add(List<Todo>.from(_allTodos));
-    });
+  Future<void> loadMore() => _pagination.loadNextPage(_repo);
 
-    _subscriptions.add(sub);
-
-    _lastDoc = await _repo.getLastDocumentFromPage(
-      startAfter: _lastDoc,
-    );
-
-    if (_lastDoc == null) {
-      _hasMore = false;
-    }
-  }
-
-  Future<void> loadMore() async {
-    await _loadNextPage();
-  }
-
-  void refetch() {
-    _allTodos.clear();
-    _existingIds.clear();
-    _lastDoc = null;
-    _hasMore = true;
-    for (final sub in _subscriptions) {
-      sub.cancel();
-    }
-    _subscriptions.clear();
-    _loadNextPage();
-  }
+  void refetch() => _pagination.refetch(_repo);
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class SharedTodosController extends _$SharedTodosController {
   final _repo = TodoRepository(isShared: true);
-  final List<StreamSubscription<List<Todo>>> _subscriptions = [];
-  final List<Todo> _allTodos = [];
-  final Set<String> _existingIds = {};
-  DocumentSnapshot<Todo>? _lastDoc;
-  bool _hasMore = true;
-
-  bool get getHasMore => _hasMore;
-
-  final _mergedStream = StreamController<List<Todo>>.broadcast();
+  final _pagination = TodosPaginationManager();
 
   @override
   Stream<List<Todo>> build() {
-    ref.onDispose(() {
-      for (final sub in _subscriptions) {
-        sub.cancel();
-      }
-      _mergedStream.close();
-    });
-
-    _loadNextPage();
-    return _mergedStream.stream;
+    ref.onDispose(_pagination.dispose);
+    _pagination.loadNextPage(_repo);
+    return _pagination.stream;
   }
 
-  Future<void> _loadNextPage() async {
-    if (!_hasMore) return;
-    final pageStream = _repo.getTodosPageStream(
-      startAfter: _lastDoc,
-    );
+  @override
+  bool get hasMore => _pagination.hasMore;
 
-    final sub = pageStream.listen((todos) {
-      for (var todo in todos) {
-        if (!_existingIds.contains(todo.id)) {
-          _existingIds.add(todo.id);
-          _allTodos.add(todo);
-        } else {
-          final index = _allTodos.indexWhere((item) => item.id == todo.id);
-          if (index != -1) {
-            _allTodos[index] = todo;
-          }
-        }
-      }
-      _mergedStream.add(List<Todo>.from(_allTodos));
-    });
+  Future<void> loadMore() => _pagination.loadNextPage(_repo);
 
-    _subscriptions.add(sub);
-
-    _lastDoc = await _repo.getLastDocumentFromPage(
-      startAfter: _lastDoc,
-    );
-
-    if (_lastDoc == null) {
-      _hasMore = false;
-    }
-  }
-
-  Future<void> loadMore() async {
-    await _loadNextPage();
-  }
-
-  void refetch() {
-    _allTodos.clear();
-    _existingIds.clear();
-    _lastDoc = null;
-    _hasMore = true;
-    for (final sub in _subscriptions) {
-      sub.cancel();
-    }
-    _subscriptions.clear();
-    _loadNextPage();
-  }
+  void refetch() => _pagination.refetch(_repo);
 }
 
 @riverpod

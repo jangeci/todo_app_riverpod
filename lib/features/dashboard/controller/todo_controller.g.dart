@@ -6,29 +6,29 @@ part of 'todo_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$todoControllerHash() => r'2a29164f4802358d44230274f0f336e39841d230';
+String _$todosControllerHash() => r'8063aada1e47b8797ccd94a5aca939c2344b2d3d';
 
-/// See also [TodoController].
-@ProviderFor(TodoController)
-final todoControllerProvider =
-    AutoDisposeStreamNotifierProvider<TodoController, List<Todo>>.internal(
-  TodoController.new,
-  name: r'todoControllerProvider',
+/// See also [TodosController].
+@ProviderFor(TodosController)
+final todosControllerProvider =
+    StreamNotifierProvider<TodosController, List<Todo>>.internal(
+  TodosController.new,
+  name: r'todosControllerProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$todoControllerHash,
+      : _$todosControllerHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$TodoController = AutoDisposeStreamNotifier<List<Todo>>;
+typedef _$TodosController = StreamNotifier<List<Todo>>;
 String _$sharedTodosControllerHash() =>
-    r'f3ff09d8bb373d4eec760f7ce984c8788b33f99e';
+    r'b23ea2d65cd10a85f5c9eecdfcc33349812a26f9';
 
 /// See also [SharedTodosController].
 @ProviderFor(SharedTodosController)
-final sharedTodosControllerProvider = AutoDisposeStreamNotifierProvider<
-    SharedTodosController, List<Todo>>.internal(
+final sharedTodosControllerProvider =
+    StreamNotifierProvider<SharedTodosController, List<Todo>>.internal(
   SharedTodosController.new,
   name: r'sharedTodosControllerProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -38,7 +38,7 @@ final sharedTodosControllerProvider = AutoDisposeStreamNotifierProvider<
   allTransitiveDependencies: null,
 );
 
-typedef _$SharedTodosController = AutoDisposeStreamNotifier<List<Todo>>;
+typedef _$SharedTodosController = StreamNotifier<List<Todo>>;
 String _$todoActionsControllerHash() =>
     r'f7f49a6bdfad8c354f227a98561e5693caa2055e';
 

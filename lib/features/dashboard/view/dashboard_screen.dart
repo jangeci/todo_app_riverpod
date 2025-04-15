@@ -86,7 +86,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   _displayTextInputDialog(WidgetRef ref) async {
     final actionsController = ref.read(todoActionsControllerProvider.notifier);
-    final todosNotifier = ref.read(todoControllerProvider.notifier);
+    final todosNotifier = ref.read(todosControllerProvider.notifier);
 
     return showDialog(
       context: context,
