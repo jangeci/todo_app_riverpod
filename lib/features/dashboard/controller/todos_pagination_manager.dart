@@ -50,7 +50,7 @@ class TodosPaginationManager {
     _mergedStream.close();
   }
 
-  void refetch(TodoRepository repo) {
+  Future<void> refetch(TodoRepository repo) async {
     _allTodos.clear();
     _existingIds.clear();
     _lastDoc = null;
@@ -59,6 +59,6 @@ class TodosPaginationManager {
       sub.cancel();
     }
     _subscriptions.clear();
-    loadNextPage(repo);
+    await loadNextPage(repo);
   }
 }

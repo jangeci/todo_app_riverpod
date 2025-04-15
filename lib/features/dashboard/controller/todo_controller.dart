@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:todo_app/common/widgets/popup_messages.dart';
 import 'package:todo_app/features/dashboard/controller/todos_pagination_manager.dart';
@@ -27,7 +26,9 @@ class TodosController extends _$TodosController {
 
   Future<void> loadMore() => _pagination.loadNextPage(_repo);
 
-  void refetch() => _pagination.refetch(_repo);
+  Future<void> refetch() async {
+    await _pagination.refetch(_repo);
+  }
 }
 
 @Riverpod(keepAlive: true)
@@ -47,34 +48,30 @@ class SharedTodosController extends _$SharedTodosController {
 
   Future<void> loadMore() => _pagination.loadNextPage(_repo);
 
-  void refetch() => _pagination.refetch(_repo);
+  Future<void> refetch() async {
+    await _pagination.refetch(_repo);
+  }
 }
 
 @riverpod
 class TodoActionsController extends _$TodoActionsController {
   final _repo = TodoRepository();
-  final TextEditingController textEditingController = TextEditingController();
 
   @override
-  void build() {
-    ref.onDispose(() {
-      textEditingController.dispose();
-    });
-  }
+  void build() {}
 
-  Future<void> addTodo() async {
+  Future<void> addTodo(String title) async {
     String? email = Global.storageService.getUserProfile()?.email;
     if (email != null) {
       Todo todo = Todo(
         id: '',
-        title: textEditingController.text,
+        title: title,
         owner: email,
         done: false,
         sharedWith: [],
         createdAt: DateTime.now(),
       );
       await _repo.addTodo(todo);
-      textEditingController.clear();
     }
   }
 

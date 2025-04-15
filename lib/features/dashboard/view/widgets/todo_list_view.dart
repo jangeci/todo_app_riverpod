@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_app/features/dashboard/controller/todo_controller.dart';
-import 'package:todo_app/models/todo.dart';
 
 import 'todo_widget.dart';
 
@@ -29,12 +28,12 @@ class _TodoListViewState extends State<TodoListView> {
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 40) {
-        _maybeLoadMore();
+        _loadMore();
       }
     });
   }
 
-  void _maybeLoadMore() async {
+  void _loadMore() async {
     //I tried to write this better but ended up with this :s
     if (widget.isSharedList) {
       final todoController = widget.ref.read(sharedTodosControllerProvider.notifier);
@@ -63,6 +62,14 @@ class _TodoListViewState extends State<TodoListView> {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> refetch() async {
+      if (widget.isSharedList) {
+        await widget.ref.read(sharedTodosControllerProvider.notifier).refetch();
+      } else {
+        await widget.ref.read(todosControllerProvider.notifier).refetch();
+      }
+    }
+
     final todosStream = widget.isSharedList ? widget.ref.watch(sharedTodosControllerProvider) : widget.ref.watch(todosControllerProvider);
     final hasMore =
         widget.isSharedList ? widget.ref.watch(sharedTodosControllerProvider.notifier).hasMore : widget.ref.watch(todosControllerProvider.notifier).hasMore;
@@ -76,15 +83,12 @@ class _TodoListViewState extends State<TodoListView> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            if (widget.isSharedList) {
-              widget.ref.read(sharedTodosControllerProvider.notifier).refetch();
-            } else {
-              widget.ref.read(todosControllerProvider.notifier).refetch();
-            }
+            await refetch();
           },
           child: ListView.builder(
+            physics: AlwaysScrollableScrollPhysics(),
             controller: _scrollController,
-            itemCount: todos.length + (hasMore ? 1 : 0),
+            itemCount: todos.length + (hasMore && _isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == todos.length) {
                 return Padding(
@@ -97,7 +101,10 @@ class _TodoListViewState extends State<TodoListView> {
 
               return TodoWidget(
                 key: Key(todo.id),
-                delete: () => actions.deleteTodo(todo.id),
+                delete: () {
+                  actions.deleteTodo(todo.id);
+                  refetch();
+                },
                 toggle: () => actions.updateTodo(todo.copyWith(done: !todo.done)),
                 todo: todo,
                 isFirst: index == 0,

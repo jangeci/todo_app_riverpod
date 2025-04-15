@@ -91,13 +91,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return showDialog(
       context: context,
       builder: (context) {
+        final textController = TextEditingController();
+
         return AlertDialog(
           title: const Text16Normal('Add a todo'),
-          content: AppTextField(controller: actionsController.textEditingController, label: 'Title'),
+          content: AppTextField(controller: textController, label: 'Title'),
           actions: [
             PrimaryButton(
                 onTap: () {
-                  actionsController.addTodo();
+                  actionsController.addTodo(textController.text);
                   todosNotifier.refetch();
                   Navigator.pop(context);
                 },
